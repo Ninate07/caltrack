@@ -219,6 +219,8 @@ function norm0(s){return String(s).toLowerCase().replace(/œ/g,'oe').replace(/æ
 
 /* ---------- Langue : français / anglais ---------- */
 const S={fr:{
+ steps:'Pas',stepsPh:'Nombre de pas du jour',stepsNote:"Recopie le chiffre de ton application Santé. Ils n'entrent pas dans le calcul des calories, pour ne pas compter ton activité deux fois.",stepsSaved:'Pas enregistrés',
+ steps7:'Pas, 7 derniers jours',stepsAvg:'{n} pas par jour en moyenne ({d} jour(s) notés)',stepsChart:'Pas des 7 derniers jours',stepsNone:'Note tes pas dans le Journal pour les voir ici.',
  scaleData:'Données de ta balance (facultatif)',sFat:'Masse grasse (%)',sMus:'Masse musculaire (kg)',sWat:'Eau (%)',sBmr:'Métabolisme de base (kcal)',
  scaleLast:'Dernière mesure de ta balance',bmrSrcL:'Métabolisme de base utilisé',bmrFormule:'Calculé (formule de Mifflin-St Jeor)',bmrBalance:'Celui de ma balance ({k} kcal, le {d})',
  bmrNoScale:'Pour utiliser le métabolisme de ta balance, note-le avec une pesée dans l\'onglet Suivi.',bmrScaleNote:'Ta balance calcule ce chiffre avec sa propre méthode, que le fabricant ne publie généralement pas : c\'est aussi une estimation.',
@@ -315,6 +317,8 @@ const S={fr:{
  tQty:'Indique une quantité',tAdded:'Ajouté au {meal}',tDeleted:'Supprimé',tCopied:'Repas de la veille repris',tNameKcal:"Le nom et l'énergie en kcal sont nécessaires",tProdSaved:'Produit enregistré',tRecipeName:'Donne un nom à la recette',tRecipeIng:'Ajoute au moins un ingrédient',tRecipeSaved:'Recette enregistrée',tRecipeDel:'Recette supprimée',tCheckProfile:'Vérifie âge, poids et taille',tProfileSaved:'Profil enregistré',tWeightBad:'Indique un poids valide',tWeightSaved:'Poids noté',
  tStorage:"Impossible d'enregistrer : la mémoire du navigateur est pleine ou bloquée",tReadFail:'Lecture des données impossible',tBackup:'Sauvegarde téléchargée',tNotBackup:"Ce fichier n'est pas une sauvegarde CalTrack",tRestoreFail:'Restauration impossible',tRestored:'Données restaurées',backupFile:'caltrack-sauvegarde'
 },en:{
+ steps:'Steps',stepsPh:"Today's step count",stepsNote:'Copy the number from your Health app. Steps are not added to your calorie goal, so your activity is not counted twice.',stepsSaved:'Steps saved',
+ steps7:'Steps, last 7 days',stepsAvg:'{n} steps per day on average ({d} day(s) logged)',stepsChart:'Steps over the last 7 days',stepsNone:'Log your steps in the Diary to see them here.',
  scaleData:'Smart scale data (optional)',sFat:'Body fat (%)',sMus:'Muscle mass (kg)',sWat:'Water (%)',sBmr:'Basal metabolic rate (kcal)',
  scaleLast:'Latest smart scale reading',bmrSrcL:'Basal metabolic rate used',bmrFormule:'Calculated (Mifflin-St Jeor equation)',bmrBalance:'From my scale ({k} kcal, on {d})',
  bmrNoScale:'To use your scale\'s metabolic rate, log it with a weigh-in in the Progress tab.',bmrScaleNote:'Your scale calculates this figure with its own method, which manufacturers usually do not publish: it is an estimate too.',
@@ -610,6 +614,9 @@ async function journalHTML(){
     <div class="macros">${mac}</div></div>
   ${meals}
   ${sportCardHTML(day)}
+  <section class="card"><div class="row-h"><h2 style="font-size:17px">${t('steps')}</h2>${day.steps?`<span class="muted num">${nf(day.steps)}</span>`:''}</div>
+   <input id="stepsIn" type="number" inputmode="numeric" min="0" max="100000" enterkeyhint="done" placeholder="${t('stepsPh')}" value="${day.steps||''}" style="margin-top:10px">
+   <p class="note" style="margin:8px 0 0">${t('stepsNote')}</p></section>
   ${analysisHTML(day.entries,T,1,false)}
   <section class="card"><div class="row-h"><h2 style="font-size:17px">${t('water')}</h2><span class="muted num">${(day.eau*0.25).toLocaleString(LOC)} L / ${(P.profile.eauObj*0.25).toLocaleString(LOC)} L</span></div>
   <div class="water">${glasses}</div><p class="note" style="margin:8px 0 0">${t('waterNote')}</p></section>
@@ -640,6 +647,13 @@ async function statsHTML(){
     <line x1="0" x2="${W}" y1="${y(T.kcal)}" y2="${y(T.kcal)}" stroke="var(--muted)" stroke-dasharray="4 4"/>${bars}</svg>
     <div class="stat3"><div><b>${nf(avg('kc'))}</b><small>${t('avgKcal')}</small></div><div><b>${inGoal} / ${filled.length}</b><small>${t('daysInGoal')}</small></div><div><b>${nf(avg('pr'))} g</b><small>${t('protPerDay')}</small></div></div>
     <p class="note" style="margin:10px 0 0">${t('avgNote')}</p></section>
+  ${await (async()=>{const W2=340,H2=120,pts2=[];for(let i=6;i>=0;i--){const d=addDays(td,-i),dd=await getDay(d);pts2.push({d,s:dd.steps||0})}
+    const f=pts2.filter(x=>x.s>0);if(!f.length)return`<section class="card"><h2 style="font-size:17px">${t('steps7')}</h2><p class="note">${t('stepsNone')}</p></section>`;
+    const mx=Math.max(...pts2.map(x=>x.s))*1.15,bw=30,gp=(W2-7*bw)/8,yy=v=>14+(H2-14-22)*(1-v/mx);
+    const bars=pts2.map((x,i)=>{const X=gp+i*(bw+gp),[a,b2,c]=x.d.split('-').map(Number),lab=new Date(a,b2-1,c).toLocaleDateString(LOC,{weekday:'short'}).replace('.','').slice(0,3);
+      return`<rect x="${X}" y="${yy(x.s)}" width="${bw}" height="${Math.max(0,H2-22-yy(x.s))}" rx="5" fill="var(--water)" opacity="${x.d===td?1:.75}"/>${x.s?`<text x="${X+bw/2}" y="${yy(x.s)-3}" text-anchor="middle">${f1(x.s/1000)}k</text>`:''}<text x="${X+bw/2}" y="${H2-6}" text-anchor="middle">${lab}</text>`}).join('');
+    return`<section class="card"><h2 style="font-size:17px">${t('steps7')}</h2><svg class="chart" viewBox="0 0 ${W2} ${H2}" role="img" aria-label="${t('stepsChart')}">${bars}</svg>
+     <p class="note" style="margin:6px 0 0">${t('stepsAvg',{n:nf(f.reduce((a,x)=>a+x.s,0)/f.length),d:f.length})}</p></section>`})()}
   ${await (async()=>{const all=[];let nd=0;for(let i=6;i>=0;i--){const dd=await getDay(addDays(td,-i));if(dd.entries.length){nd++;all.push(...dd.entries)}}return nd?analysisHTML(all,T,nd,true):''})()}
   <section class="card"><div class="row-h"><h2 style="font-size:17px">${t('weight')}</h2>${last?`<span class="muted num">${f1(last.kg)} kg${ws.length>1?` · ${diff>0?'+':''}${f1(diff)} kg`:''}</span>`:''}</div>
     <div style="display:flex;gap:8px;margin-top:10px"><input id="wkg" type="number" inputmode="decimal" step="0.1" min="20" max="300" placeholder="${t('weightToday')}" aria-label="${t('weightToday')}"><button class="btn" style="width:auto" data-act="addW">${t('log')}</button></div>
@@ -1029,7 +1043,8 @@ document.addEventListener('input',e=>{const el=e.target;
   else if(['cK','cP','cG','cL'].includes(el.id))chkUpd();
   else if(['rParts','rCooked','rN'].includes(el.id)){readRecipeForm();$('#rTot').innerHTML=totHTML(A.rec)}
   else if(el.dataset.rig!==undefined){const x=A.rec.ings[+el.dataset.rig];x.g=+el.value||0;$(`[data-ik="${el.dataset.rig}"]`).textContent=nf(x.b.kc*x.g/100)+' kcal';$('#rTot').innerHTML=totHTML(A.rec)}});
-document.addEventListener('change',e=>{const el=e.target,f=el.files&&el.files[0];
+document.addEventListener('change',async e=>{const el=e.target,f=el.files&&el.files[0];
+  if(el.id==='stepsIn'){const v=Math.round(+el.value);const day=await getDay(cur);if(v>0&&v<=100000)day.steps=v;else delete day.steps;saveDay(cur);render();toast(t('stepsSaved'));return}
   if((el.id==='scanCam'||el.id==='scanFile')&&f)scanFile(f);
   else if(el.id==='impFile'&&f)readImport(f);
   else if(['pSexe','pAct','pObj','pRythme','pSport','pBmrSrc'].includes(el.id))profileUpd()});

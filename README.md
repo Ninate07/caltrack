@@ -27,7 +27,7 @@ Ouvrez l'adresse dans Chrome, touchez le menu ⋮ puis **Installer l'application
 ## Mettre à jour l'appli plus tard
 
 1. Dans le dépôt, cliquez sur `index.html`, puis sur l'icône crayon ou **Add file > Upload files** pour déposer la nouvelle version.
-2. Ouvrez `sw.js` et augmentez le numéro dans `caltrack-v7` (v8, puis v9, etc.). Sans ce changement, les téléphones peuvent garder l'ancienne version en mémoire.
+2. Ouvrez `sw.js` et augmentez le numéro dans `caltrack-v8` (v9, puis v10, etc.). Sans ce changement, les téléphones peuvent garder l'ancienne version en mémoire.
 
 ## Données
 
