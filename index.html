@@ -217,6 +217,11 @@ function norm0(s){return String(s).toLowerCase().replace(/œ/g,'oe').replace(/æ
 
 /* ---------- Langue : français / anglais ---------- */
 const S={fr:{
+ pace:'Rythme',paceDoux:'Doux : 10 % de moins que ta dépense',paceModere:'Modéré : 15 % de moins',paceSoutenu:'Soutenu : 20 % de moins',
+ targetW:'Poids objectif (kg)',targetPh:'Facultatif',floorNote:'Ajusté pour ne pas descendre sous ton métabolisme de base ({b} kcal) : manger moins serait difficile à tenir et risquerait de te priver de nutriments.',
+ remaining:'Il te reste {d} kg pour atteindre {c} kg.',reached:'Objectif de poids atteint, bravo !',bmiLow:"Ce poids objectif correspond à un IMC de {i}, sous le seuil de 18,5 que l'OMS définit comme une insuffisance pondérale. Parles-en à un professionnel de santé avant de le viser.",
+ bmiNow:'IMC actuel : {i} · IMC à l\'objectif : {j} (OMS : corpulence normale entre 18,5 et 25).',targetAbove:'Ton poids objectif est au-dessus de ton poids actuel : choisis plutôt « Maintenir » ou « Prendre du muscle ».',
+ goalLine:'Objectif : {c} kg · reste {d} kg',
  motTitle:'Le mot du jour',
  cvAuto:'proposé automatiquement',
  sugarsG:'dont sucres (g)',satG:'dont acides gras saturés (g)',fibreG:'Fibres (g)',saltG:'Sel (g)',
@@ -259,7 +264,7 @@ const S={fr:{
  stats:'Suivi',last7:'7 derniers jours',goalShort:'objectif {k}',chart7:'Calories des 7 derniers jours',avgKcal:'kcal / jour en moyenne',daysInGoal:"jours dans l'objectif (±10 %)",protPerDay:'protéines / jour',avgNote:'Moyennes calculées sur les jours où au moins un aliment est noté.',
  weight:'Poids',weightToday:'Poids du jour (kg)',log:'Noter',weightCurve:'Courbe de poids',weightNeed2:'Note ton poids deux fois ou plus pour voir la courbe.',
  wDown:'{d} kg depuis la dernière pesée, bravo !',wUp:"+{d} kg, ça arrive : le poids varie d'un jour à l'autre. On garde le cap !",wSame:'Poids stable, tout va bien.',del:'Supprimer',
- objLose:'Environ 15 % de moins que ta dépense : une perte progressive, autour de 0,25 à 0,5 kg par semaine.',objKeep:'Autant que ta dépense estimée.',objGain:'Environ 10 % de plus que ta dépense, à associer à de la musculation.',
+ objLose:'Calories conseillées selon le rythme choisi, sans jamais descendre sous ton métabolisme de base.',objKeep:'Autant que ta dépense estimée.',objGain:'Environ 10 % de plus que ta dépense, à associer à de la musculation.',
  benchmarks:'Tes repères',unsaved:'non enregistrés',bmr:'métabolisme de base',tdee:'dépense estimée / jour',goalKcal:'objectif kcal / jour',setByYou:' (fixé par toi)',
  calcNote:'Calcul selon la formule de Mifflin-St Jeor, la plus utilisée par les diététiciens. Protéines à 1,8 g par kg, lipides à 30 % des calories, le reste en glucides. Ce sont des estimations : un ou une diététicienne reste la meilleure référence pour un objectif précis.',
  profileTitle:'Profil et objectifs',language:'Langue',sex:'Sexe',female:'Femme',male:'Homme',age:'Âge',weightKg:'Poids (kg)',height:'Taille (cm)',activity:'Activité',
@@ -297,6 +302,11 @@ const S={fr:{
  tQty:'Indique une quantité',tAdded:'Ajouté au {meal}',tDeleted:'Supprimé',tCopied:'Repas de la veille repris',tNameKcal:"Le nom et l'énergie en kcal sont nécessaires",tProdSaved:'Produit enregistré',tRecipeName:'Donne un nom à la recette',tRecipeIng:'Ajoute au moins un ingrédient',tRecipeSaved:'Recette enregistrée',tRecipeDel:'Recette supprimée',tCheckProfile:'Vérifie âge, poids et taille',tProfileSaved:'Profil enregistré',tWeightBad:'Indique un poids valide',tWeightSaved:'Poids noté',
  tStorage:"Impossible d'enregistrer : la mémoire du navigateur est pleine ou bloquée",tReadFail:'Lecture des données impossible',tBackup:'Sauvegarde téléchargée',tNotBackup:"Ce fichier n'est pas une sauvegarde CalTrack",tRestoreFail:'Restauration impossible',tRestored:'Données restaurées',backupFile:'caltrack-sauvegarde'
 },en:{
+ pace:'Pace',paceDoux:'Gentle: 10% below your expenditure',paceModere:'Moderate: 15% below',paceSoutenu:'Steady: 20% below',
+ targetW:'Target weight (kg)',targetPh:'Optional',floorNote:'Adjusted so it never goes below your basal metabolic rate ({b} kcal): eating less would be hard to sustain and could leave you short of nutrients.',
+ remaining:'{d} kg to go to reach {c} kg.',reached:'Weight goal reached, well done!',bmiLow:'This target weight gives a BMI of {i}, below the 18.5 threshold the WHO defines as underweight. Talk to a health professional before aiming for it.',
+ bmiNow:'Current BMI: {i} · BMI at target: {j} (WHO: normal range from 18.5 to 25).',targetAbove:'Your target weight is above your current weight: choose "Maintain" or "Build muscle" instead.',
+ goalLine:'Target: {c} kg · {d} kg to go',
  motTitle:'Thought of the day',
  sugarsG:'of which sugars (g)',satG:'of which saturates (g)',fibreG:'Fibre (g)',saltG:'Salt (g)',
  anTitle:"Today's analysis",anWeek:'Average over the last 7 days ({n} day(s) logged)',anPartial:'Day not complete yet: excesses are flagged, shortfalls are not.',
@@ -338,7 +348,7 @@ const S={fr:{
  stats:'Progress',last7:'Last 7 days',goalShort:'goal {k}',chart7:'Calories over the last 7 days',avgKcal:'kcal / day on average',daysInGoal:'days on target (±10%)',protPerDay:'protein / day',avgNote:'Averages only count days with at least one food logged.',
  weight:'Weight',weightToday:"Today's weight (kg)",log:'Log',weightCurve:'Weight curve',weightNeed2:'Log your weight twice or more to see the curve.',
  wDown:'{d} kg since your last weigh-in, well done!',wUp:'+{d} kg, it happens: weight varies from day to day. Stay on track!',wSame:'Weight stable, all good.',del:'Delete',
- objLose:'About 15% below your expenditure: steady loss, around 0.25 to 0.5 kg per week.',objKeep:'The same as your estimated expenditure.',objGain:'About 10% above your expenditure, to pair with strength training.',
+ objLose:'Recommended calories based on the pace you choose, never below your basal metabolic rate.',objKeep:'The same as your estimated expenditure.',objGain:'About 10% above your expenditure, to pair with strength training.',
  benchmarks:'Your targets',unsaved:'not saved',bmr:'basal metabolic rate',tdee:'estimated expenditure / day',goalKcal:'kcal goal / day',setByYou:' (set by you)',
  calcNote:'Calculated with the Mifflin-St Jeor equation, the one dietitians use most. Protein at 1.8 g per kg, fat at 30% of calories, the rest from carbs. These are estimates: a dietitian remains the best reference for a precise goal.',
  profileTitle:'Profile and goals',language:'Language',sex:'Sex',female:'Female',male:'Male',age:'Age',weightKg:'Weight (kg)',height:'Height (cm)',activity:'Activity',
@@ -420,7 +430,8 @@ function lget(k){try{const v=localStorage.getItem(LS+k);return v?JSON.parse(v):n
 function lset(k,v){try{localStorage.setItem(LS+k,JSON.stringify(v))}catch(e){toast(t('tStorage'))}}
 async function sget(k){return lget(k)}
 function sset(k,v){lset(k,v)}
-const DEF={sexe:'F',age:30,poids:65,taille:165,activite:1.375,objectif:'maintien',kcalPerso:'',eauObj:8,saved:false};
+const DEF={sexe:'F',age:30,poids:65,taille:165,activite:1.375,objectif:'maintien',rythme:'modere',cible:'',kcalPerso:'',eauObj:8,saved:false};
+const RYTHME={doux:0.10,modere:0.15,soutenu:0.20};
 let P={profile:{...DEF},custom:[],recents:[],favs:[],weights:[],recipes:[]};
 let days={},cur=today(),tab='journal';
 async function getDay(d){if(!days[d])days[d]=(await sget('day-'+d))||{entries:[],eau:0};return days[d]}
@@ -430,9 +441,13 @@ async function loadAll(){const p=await sget('profile');if(p){P={...P,...p,profil
 
 /* ---------- Calculs ---------- */
 function energy(p=P.profile){const bmr=10*p.poids+6.25*p.taille-5*p.age+(p.sexe==='H'?5:-161);return{bmr:Math.round(bmr),tdee:Math.round(bmr*p.activite)}}
-function targets(p=P.profile){const{tdee}=energy(p);let kcal=+p.kcalPerso>0?+p.kcalPerso:tdee*({perte:0.85,maintien:1,prise:1.1}[p.objectif]||1);
-  kcal=Math.max(kcal,p.sexe==='H'?1500:1200);kcal=Math.round(kcal/10)*10;
-  const pr=Math.round(Math.min(p.poids*1.8,kcal*0.3/4)),li=Math.round(kcal*0.3/9),gl=Math.max(0,Math.round((kcal-pr*4-li*9)/4));return{kcal,pr,gl,li}}
+function targets(p=P.profile){const{bmr,tdee}=energy(p);let floored=false,kcal;
+  if(+p.kcalPerso>0)kcal=+p.kcalPerso;
+  else{kcal=p.objectif==='perte'?tdee*(1-(RYTHME[p.rythme]||0.15)):p.objectif==='prise'?tdee*1.1:tdee;
+    /* jamais sous le métabolisme de base, ni sous 1200 kcal (femme) / 1500 kcal (homme) */
+    const floor=Math.max(bmr,p.sexe==='H'?1500:1200);if(kcal<floor){kcal=floor;floored=true}}
+  kcal=Math.round(kcal/10)*10;
+  const pr=Math.round(Math.min(p.poids*1.8,kcal*0.3/4)),li=Math.round(kcal*0.3/9),gl=Math.max(0,Math.round((kcal-pr*4-li*9)/4));return{kcal,pr,gl,li,floored}}
 const tot=e=>({kc:e.b.kc*e.g/100,pr:e.b.pr*e.g/100,gl:e.b.gl*e.g/100,li:e.b.li*e.g/100});
 function sum(list){return list.reduce((a,e)=>{const x=tot(e);a.kc+=x.kc;a.pr+=x.pr;a.gl+=x.gl;a.li+=x.li;return a},{kc:0,pr:0,gl:0,li:0})}
 function recipeTotals(r){const x=r.ings.reduce((a,i)=>{a.kc+=i.b.kc*i.g/100;a.pr+=i.b.pr*i.g/100;a.gl+=i.b.gl*i.g/100;a.li+=i.b.li*i.g/100;a.raw+=+i.g||0;return a},{kc:0,pr:0,gl:0,li:0,raw:0});
@@ -584,18 +599,26 @@ async function statsHTML(){
   ${await (async()=>{const all=[];let nd=0;for(let i=6;i>=0;i--){const dd=await getDay(addDays(td,-i));if(dd.entries.length){nd++;all.push(...dd.entries)}}return nd?analysisHTML(all,T,nd,true):''})()}
   <section class="card"><div class="row-h"><h2 style="font-size:17px">${t('weight')}</h2>${last?`<span class="muted num">${f1(last.kg)} kg${ws.length>1?` · ${diff>0?'+':''}${f1(diff)} kg`:''}</span>`:''}</div>
     <div style="display:flex;gap:8px;margin-top:10px"><input id="wkg" type="number" inputmode="decimal" step="0.1" min="20" max="300" placeholder="${t('weightToday')}" aria-label="${t('weightToday')}"><button class="btn" style="width:auto" data-act="addW">${t('log')}</button></div>
+    ${+P.profile.cible>0&&last?`<p class="okline num" style="margin:8px 0 0">${t('goalLine',{c:f1(P.profile.cible),d:f1(Math.max(0,last.kg-P.profile.cible))})}</p>`:''}
     ${wm}
     ${wchart||`<p class="note">${t('weightNeed2')}</p>`}
     ${ws.length?`<div class="wlist">${ws.slice().reverse().slice(0,8).map(w=>`<div><span>${dateLabel(w.d)}</span><span class="num">${f1(w.kg)} kg <button class="x" data-act="delW" data-d="${w.d}" aria-label="${t('del')}">×</button></span></div>`).join('')}</div>`:''}</section>`}
 
 const objHelp=o=>({perte:t('objLose'),maintien:t('objKeep'),prise:t('objGain')}[o]||'');
+const bmi=(kg,cm)=>kg/((cm/100)**2);
+function goalInfoHTML(p){const c=+p.cible;if(!(c>0)||!(p.poids>0)||!(p.taille>0))return'';const d=r1(p.poids-c),bi=bmi(p.poids,p.taille),bj=bmi(c,p.taille),out=[];
+  if(bj<18.5)out.push(`<p class="warn">${t('bmiLow',{i:f1(bj)})}</p>`);
+  if(p.objectif==='perte'&&c>p.poids)out.push(`<p class="warn">${t('targetAbove')}</p>`);
+  else if(p.objectif==='perte')out.push(`<p class="okline">${d<=0?t('reached'):t('remaining',{d:f1(d),c:f1(c)})}</p>`);
+  out.push(`<p class="note" style="margin:0">${t('bmiNow',{i:f1(bi),j:f1(bj)})}</p>`);return`<div style="display:flex;flex-direction:column;gap:6px">${out.join('')}</div>`}
 function reperesHTML(p,dirty){const T=targets(p),E=energy(p);
   return`<h2 style="font-size:17px">${t('benchmarks')}${dirty?` <span class="badge ia">${t('unsaved')}</span>`:''}</h2>
    <div class="stat3"><div><b>${nf(E.bmr)}</b><small>${t('bmr')}</small></div><div><b>${nf(E.tdee)}</b><small>${t('tdee')}</small></div><div><b style="color:var(--accent)">${nf(T.kcal)}</b><small>${t('goalKcal')}${+p.kcalPerso>0?t('setByYou'):''}</small></div></div>
    <div class="stat3"><div><b style="color:var(--prot)">${T.pr} g</b><small>${t('proteinL')}</small></div><div><b style="color:var(--gluc)">${T.gl} g</b><small>${t('carbsL')}</small></div><div><b style="color:var(--lip)">${T.li} g</b><small>${t('fatL')}</small></div></div>
+   ${T.floored?`<p class="warn" style="margin-top:10px">${t('floorNote',{b:nf(E.bmr)})}</p>`:''}
    <p class="note" style="margin:12px 0 0">${t('calcNote')}</p>`}
-function formProfile(){const v=id=>$(id).value;return{...P.profile,sexe:v('#pSexe'),age:+v('#pAge'),poids:+v('#pPoids'),taille:+v('#pTaille'),activite:+v('#pAct'),objectif:v('#pObj'),kcalPerso:+v('#pPerso')>0?Math.round(+v('#pPerso')):'',eauObj:Math.min(16,Math.max(1,Math.round(+v('#pEau')||8)))}}
-function profileUpd(){const p=formProfile();if(!(p.age>=14&&p.poids>=30&&p.taille>=120))return;$('#rep').innerHTML=reperesHTML(p,true);$('#objHelp').textContent=objHelp(p.objectif);
+function formProfile(){const v=id=>$(id).value;return{...P.profile,rythme:v('#pRythme'),cible:+v('#pCible')>=30&&+v('#pCible')<=300?r1(+v('#pCible')):'',sexe:v('#pSexe'),age:+v('#pAge'),poids:+v('#pPoids'),taille:+v('#pTaille'),activite:+v('#pAct'),objectif:v('#pObj'),kcalPerso:+v('#pPerso')>0?Math.round(+v('#pPerso')):'',eauObj:Math.min(16,Math.max(1,Math.round(+v('#pEau')||8)))}}
+function profileUpd(){const p=formProfile();$('#paceRow').hidden=p.objectif!=='perte';if(!(p.age>=14&&p.poids>=30&&p.taille>=120))return;$('#goalInfo').innerHTML=goalInfoHTML(p);$('#rep').innerHTML=reperesHTML(p,true);$('#objHelp').textContent=objHelp(p.objectif);
   $('#eauHelp').textContent=t('waterLitres',{l:(p.eauObj*0.25).toLocaleString(LOC)})}
 function profileHTML(){const p=P.profile;
   const opt=(v,l,cv)=>`<option value="${v}" ${String(cv)===String(v)?'selected':''}>${l}</option>`;
@@ -608,6 +631,9 @@ function profileHTML(){const p=P.profile;
    <label class="f">${t('activity')}<select id="pAct">${opt(1.2,t('act1'),p.activite)}${opt(1.375,t('act2'),p.activite)}${opt(1.55,t('act3'),p.activite)}${opt(1.725,t('act4'),p.activite)}</select></label>
    <label class="f">${t('objective')}<select id="pObj">${opt('perte',t('lose'),p.objectif)}${opt('maintien',t('keep'),p.objectif)}${opt('prise',t('gain'),p.objectif)}</select></label>
    <p class="note" id="objHelp" style="margin:-6px 0 0">${objHelp(p.objectif)}</p>
+   <div id="paceRow" ${p.objectif==='perte'?'':'hidden'}><label class="f">${t('pace')}<select id="pRythme">${opt('doux',t('paceDoux'),p.rythme)}${opt('modere',t('paceModere'),p.rythme)}${opt('soutenu',t('paceSoutenu'),p.rythme)}</select></label></div>
+   <label class="f">${t('targetW')}<input id="pCible" type="number" inputmode="decimal" step="0.1" placeholder="${t('targetPh')}" value="${p.cible||''}"></label>
+   <div id="goalInfo">${goalInfoHTML(p)}</div>
    <label class="f">${t('customKcal')}<input id="pPerso" type="number" inputmode="numeric" placeholder="${t('customPh')}" value="${p.kcalPerso||''}"></label>
    <p class="note" style="margin:-6px 0 0">${t('customNote')}</p>
    <label class="f">${t('waterGoal')}<input id="pEau" type="number" inputmode="numeric" min="1" max="16" value="${p.eauObj}"></label>
@@ -941,14 +967,14 @@ document.addEventListener('input',e=>{const el=e.target;
   else if(['cvRaw','cvCooked','cvN','cvRawPer'].includes(el.id)){CV[{cvRaw:'raw',cvCooked:'cooked',cvN:'n',cvRawPer:'rawPer'}[el.id]]=el.value;if(el.id==='cvCooked'||el.id==='cvRaw')$('#cvCk').innerHTML=cvCookedHTML();$('#cvOut').innerHTML=cvOutHTML()}
   else if(el.id==='cvQ2'){CV.q2=el.value;const pos=el.selectionStart;$('#cvCk').innerHTML=cvCookedHTML();const q=$('#cvQ2');if(q){q.focus();try{q.setSelectionRange(pos,pos)}catch(_){}}}
   else if(el.id==='qty')liveUpd(A.editId?days[cur].entries.find(x=>x.id===A.editId).b:A.food);
-  else if(['pSexe','pAge','pPoids','pTaille','pAct','pObj','pPerso','pEau'].includes(el.id))profileUpd();
+  else if(['pSexe','pAge','pPoids','pTaille','pAct','pObj','pPerso','pEau','pRythme','pCible'].includes(el.id))profileUpd();
   else if(['cK','cP','cG','cL'].includes(el.id))chkUpd();
   else if(['rParts','rCooked','rN'].includes(el.id)){readRecipeForm();$('#rTot').innerHTML=totHTML(A.rec)}
   else if(el.dataset.rig!==undefined){const x=A.rec.ings[+el.dataset.rig];x.g=+el.value||0;$(`[data-ik="${el.dataset.rig}"]`).textContent=nf(x.b.kc*x.g/100)+' kcal';$('#rTot').innerHTML=totHTML(A.rec)}});
 document.addEventListener('change',e=>{const el=e.target,f=el.files&&el.files[0];
   if((el.id==='scanCam'||el.id==='scanFile')&&f)scanFile(f);
   else if(el.id==='impFile'&&f)readImport(f);
-  else if(['pSexe','pAct','pObj'].includes(el.id))profileUpd()});
+  else if(['pSexe','pAct','pObj','pRythme'].includes(el.id))profileUpd()});
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='q'&&A&&A.q.trim().length>1){e.preventDefault();runOffSearch()}if(e.key==='Enter'&&e.target.id==='codeIn'){e.preventDefault();lookupCode((e.target.value||'').replace(/\D/g,''))}if(e.key==='Escape'&&!$('#ov').hidden&&!(A&&A.rec))closeSheet()});
 
 /* ---------- Sauvegarde ---------- */
