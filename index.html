@@ -217,6 +217,13 @@ function norm0(s){return String(s).toLowerCase().replace(/œ/g,'oe').replace(/æ
 
 /* ---------- Langue : français / anglais ---------- */
 const S={fr:{
+ welcomeTitle:'Bienvenue sur CalTrack !',welcomeText:"Commence par remplir ton profil : ton objectif de calories est calculé à partir de ces informations. Tu pourras les modifier à tout moment dans l'onglet Profil.",welcomeBtn:'Enregistrer et commencer',
+ sport:'Sport',sportAdd:'Ajouter une séance',sportType:'Activité',sportMin:'Durée (min, facultatif)',sportKcal:'Calories brûlées (kcal)',sportKcalHelp:'Recopie le chiffre de ta montre, de ton application de sport ou de la machine. Ces appareils donnent une estimation, parfois un peu haute.',
+ sp_salle:'Salle de sport',sp_course:'Course à pied',sp_velo:'Vélo',sp_natation:'Natation',sp_marche:'Marche',sp_autre:'Autre',
+ sportNone:'Aucune séance notée.',sportAdded:"Ajoutées à ton objectif du jour : +{k} kcal.",sportInLevel:"Déjà comprises dans ton niveau d'activité (Profil) : elles ne changent pas ton objectif.",
+ sportSave:'Ajouter la séance',tSportKcal:'Indique les calories brûlées',tSportSaved:'Séance ajoutée',sportGoalLine:'Base {b} + sport {e} = {t} kcal',
+ sportMode:'Calories du sport',sm_niveau:"Comprises dans mon niveau d'activité",sm_seances:'Ajoutées séance par séance',
+ smHelpNiveau:"Ton objectif tient déjà compte de ton activité habituelle. Les séances que tu notes servent seulement de suivi.",smHelpSeances:"Ton objectif de base est calculé comme si tu étais sédentaire (le niveau d'activité est alors ignoré), puis les calories de chaque séance notée s'y ajoutent ce jour-là. Pour perdre du poids, le rythme choisi s'applique à la base.",
  pace:'Rythme',paceDoux:'Doux : 10 % de moins que ta dépense',paceModere:'Modéré : 15 % de moins',paceSoutenu:'Soutenu : 20 % de moins',
  targetW:'Poids objectif (kg)',targetPh:'Facultatif',floorNote:'Ajusté pour ne pas descendre sous ton métabolisme de base ({b} kcal) : manger moins serait difficile à tenir et risquerait de te priver de nutriments.',
  remaining:'Il te reste {d} kg pour atteindre {c} kg.',reached:'Objectif de poids atteint, bravo !',bmiLow:"Ce poids objectif correspond à un IMC de {i}, sous le seuil de 18,5 que l'OMS définit comme une insuffisance pondérale. Parles-en à un professionnel de santé avant de le viser.",
@@ -302,6 +309,13 @@ const S={fr:{
  tQty:'Indique une quantité',tAdded:'Ajouté au {meal}',tDeleted:'Supprimé',tCopied:'Repas de la veille repris',tNameKcal:"Le nom et l'énergie en kcal sont nécessaires",tProdSaved:'Produit enregistré',tRecipeName:'Donne un nom à la recette',tRecipeIng:'Ajoute au moins un ingrédient',tRecipeSaved:'Recette enregistrée',tRecipeDel:'Recette supprimée',tCheckProfile:'Vérifie âge, poids et taille',tProfileSaved:'Profil enregistré',tWeightBad:'Indique un poids valide',tWeightSaved:'Poids noté',
  tStorage:"Impossible d'enregistrer : la mémoire du navigateur est pleine ou bloquée",tReadFail:'Lecture des données impossible',tBackup:'Sauvegarde téléchargée',tNotBackup:"Ce fichier n'est pas une sauvegarde CalTrack",tRestoreFail:'Restauration impossible',tRestored:'Données restaurées',backupFile:'caltrack-sauvegarde'
 },en:{
+ welcomeTitle:'Welcome to CalTrack!',welcomeText:'Start by filling in your profile: your calorie goal is calculated from it. You can change it at any time in the Profile tab.',welcomeBtn:'Save and start',
+ sport:'Exercise',sportAdd:'Add a session',sportType:'Activity',sportMin:'Duration (min, optional)',sportKcal:'Calories burned (kcal)',sportKcalHelp:'Copy the number from your watch, sports app or the machine. These devices give an estimate, sometimes a bit high.',
+ sp_salle:'Gym',sp_course:'Running',sp_velo:'Cycling',sp_natation:'Swimming',sp_marche:'Walking',sp_autre:'Other',
+ sportNone:'No session logged.',sportAdded:"Added to today's goal: +{k} kcal.",sportInLevel:'Already included in your activity level (Profile): they do not change your goal.',
+ sportSave:'Add session',tSportKcal:'Enter the calories burned',tSportSaved:'Session added',sportGoalLine:'Base {b} + exercise {e} = {t} kcal',
+ sportMode:'Exercise calories',sm_niveau:'Included in my activity level',sm_seances:'Added session by session',
+ smHelpNiveau:'Your goal already accounts for your usual activity. Sessions you log are for tracking only.',smHelpSeances:'Your base goal is calculated as if you were sedentary (the activity level is then ignored), and the calories of each logged session are added on that day. To lose weight, the chosen pace applies to the base.',
  pace:'Pace',paceDoux:'Gentle: 10% below your expenditure',paceModere:'Moderate: 15% below',paceSoutenu:'Steady: 20% below',
  targetW:'Target weight (kg)',targetPh:'Optional',floorNote:'Adjusted so it never goes below your basal metabolic rate ({b} kcal): eating less would be hard to sustain and could leave you short of nutrients.',
  remaining:'{d} kg to go to reach {c} kg.',reached:'Weight goal reached, well done!',bmiLow:'This target weight gives a BMI of {i}, below the 18.5 threshold the WHO defines as underweight. Talk to a health professional before aiming for it.',
@@ -430,7 +444,7 @@ function lget(k){try{const v=localStorage.getItem(LS+k);return v?JSON.parse(v):n
 function lset(k,v){try{localStorage.setItem(LS+k,JSON.stringify(v))}catch(e){toast(t('tStorage'))}}
 async function sget(k){return lget(k)}
 function sset(k,v){lset(k,v)}
-const DEF={sexe:'F',age:30,poids:65,taille:165,activite:1.375,objectif:'maintien',rythme:'modere',cible:'',kcalPerso:'',eauObj:8,saved:false};
+const DEF={sexe:'F',age:30,poids:65,taille:165,activite:1.375,objectif:'maintien',rythme:'modere',cible:'',sportMode:'niveau',kcalPerso:'',eauObj:8,saved:false};
 const RYTHME={doux:0.10,modere:0.15,soutenu:0.20};
 let P={profile:{...DEF},custom:[],recents:[],favs:[],weights:[],recipes:[]};
 let days={},cur=today(),tab='journal';
@@ -448,6 +462,10 @@ function targets(p=P.profile){const{bmr,tdee}=energy(p);let floored=false,kcal;
     const floor=Math.max(bmr,p.sexe==='H'?1500:1200);if(kcal<floor){kcal=floor;floored=true}}
   kcal=Math.round(kcal/10)*10;
   const pr=Math.round(Math.min(p.poids*1.8,kcal*0.3/4)),li=Math.round(kcal*0.3/9),gl=Math.max(0,Math.round((kcal-pr*4-li*9)/4));return{kcal,pr,gl,li,floored}}
+const SPORTS=['salle','course','velo','natation','marche','autre'];
+const sportSum=day=>((day&&day.sport)||[]).reduce((a,x)=>a+(+x.kc||0),0);
+function dayTargets(day){const p=P.profile;if(p.sportMode!=='seances')return{...targets(),ex:0,base:targets().kcal};
+  const b=targets({...p,activite:1.2}),ex=Math.round(sportSum(day));return{...b,kcal:b.kcal+ex,gl:b.gl+Math.round(ex/4),base:b.kcal,ex}}
 const tot=e=>({kc:e.b.kc*e.g/100,pr:e.b.pr*e.g/100,gl:e.b.gl*e.g/100,li:e.b.li*e.g/100});
 function sum(list){return list.reduce((a,e)=>{const x=tot(e);a.kc+=x.kc;a.pr+=x.pr;a.gl+=x.gl;a.li+=x.li;return a},{kc:0,pr:0,gl:0,li:0})}
 function recipeTotals(r){const x=r.ings.reduce((a,i)=>{a.kc+=i.b.kc*i.g/100;a.pr+=i.b.pr*i.g/100;a.gl+=i.b.gl*i.g/100;a.li+=i.b.li*i.g/100;a.raw+=+i.g||0;return a},{kc:0,pr:0,gl:0,li:0,raw:0});
@@ -518,6 +536,19 @@ const MOT={fr:{all:["Chaque repas noté, c'est une info de plus pour toi, pas un
   prise:["Muscle is built in the gym and on the plate.","Protein at every meal, and the rest follows.","Eating enough is part of training."]}};
 function motOfDay(d){const L=MOT[LANG]||MOT.fr,list=L.all.concat(L[P.profile.objectif]||[]);let h=0;for(const ch of d)h=(h*31+ch.charCodeAt(0))>>>0;return list[h%list.length]}
 
+/* ---------- Sport ---------- */
+function sportCardHTML(day){const L=day.sport||[],tot=sportSum(day),mode=P.profile.sportMode==='seances';
+  return`<section class="card meal"><div class="meal-h"><h2>${t('sport')}</h2><span class="kc">${L.length?nf(tot)+' kcal':''}</span>
+   <button class="plus" data-act="sportAdd" aria-label="${t('sportAdd')}">+</button></div>
+   ${L.length?L.map(x=>`<div class="entry"><span class="nm"><b>${t('sp_'+x.type)}</b><small>${x.min?nf(x.min)+' min · ':''}${nf(x.kc)} kcal</small></span><button class="x" data-act="sportDel" data-id="${x.id}" aria-label="${t('del')}">×</button></div>`).join('')
+   :`<div class="empty"><span>${t('sportNone')}</span></div>`}
+   ${L.length?`<p class="note" style="margin:0;padding:8px 16px 12px">${mode?t('sportAdded',{k:nf(tot)}):t('sportInLevel')}</p>`:''}</section>`}
+function sportSheet(){sheetShell(t('sportAdd'),`<label class="f">${t('sportType')}<select id="spType">${SPORTS.map(k=>`<option value="${k}">${t('sp_'+k)}</option>`).join('')}</select></label>
+  <div class="grid2"><label class="f">${t('sportMin')}<input id="spMin" type="number" inputmode="numeric" min="0"></label><label class="f">${t('sportKcal')}<input id="spKcal" type="number" inputmode="numeric" min="0"></label></div>
+  <p class="note" style="margin:0">${t('sportKcalHelp')}</p>
+  <p class="note" style="margin:0">${P.profile.sportMode==='seances'?t('smHelpSeances'):t('smHelpNiveau')}</p>
+  <button class="btn" data-act="sportSave">${t('sportSave')}</button>`)}
+
 /* ---------- Analyse : valeurs des aliments notés comparées aux repères officiels ---------- */
 const REF={sel:5,su:100,fi:30,ags:12};
 const FIB_EX=["Haricot rouge, bouilli/cuit à l'eau","Lentille verte, bouillie/cuite à l'eau","Pois chiche, bouilli/cuit à l'eau","Artichaut, cuit","Pain complet ou intégral (à la farine T150)","Framboise, crue"];
@@ -545,7 +576,7 @@ function analysisHTML(entries,T,nd,week){if(!entries.length)return'';const o=nut
    <p class="attrib" style="margin-top:8px">${t('anSources')}</p></section>`}
 
 async function journalHTML(){
-  const day=await getDay(cur),prev=await getDay(addDays(cur,-1)),T=targets(),Sm=sum(day.entries);
+  const day=await getDay(cur),prev=await getDay(addDays(cur,-1)),T=dayTargets(day),Sm=sum(day.entries);
   const mac=[['protein','pr','--prot'],['carbs','gl','--gluc'],['fat','li','--lip']].map(([n,k,c])=>`<div class="macro"><span>${t(n)}</span>
     <div class="bar"><i style="width:${Math.min(100,Sm[k]/T[k]*100||0)}%;background:var(${c})"></i></div><small>${nf(Sm[k])} / ${nf(T[k])} g</small></div>`).join('');
   const meals=MEALS.map(m=>{const es=day.entries.filter(e=>e.meal===m),ms=sum(es),pe=prev.entries.filter(e=>e.meal===m);
@@ -561,24 +592,25 @@ async function journalHTML(){
   <div class="card"><div class="summary">${mascot(Sm.kc/T.kcal,md.k,{id:'belly',label:t('bellyLabel',{p:Math.round(Sm.kc/T.kcal*100)})})}<div class="sumstats">
     <p class="bubble">${md.t}</p>
     <div><div class="big-left" style="color:${left<0?'var(--over)':'var(--ink)'}">${nf(Math.abs(left))}</div><span class="muted" style="font-size:13px">${left<0?t('kcalOver'):t('kcalLeft')}</span></div>
-    <div class="kv"><span class="muted">${t('goal')}</span><b>${nf(T.kcal)} kcal</b></div>
+    <div class="kv"><span class="muted">${t('goal')}</span><b>${nf(T.kcal)} kcal</b></div>${T.ex?`<p class="note num" style="margin:0;text-align:right">${t('sportGoalLine',{b:nf(T.base),e:nf(T.ex),t:nf(T.kcal)})}</p>`:''}
     <div class="kv"><span class="muted">${t('eaten')}</span><b>${nf(Sm.kc)} kcal</b></div>
   </div></div>
     <div class="macros">${mac}</div></div>
   ${meals}
+  ${sportCardHTML(day)}
   ${analysisHTML(day.entries,T,1,false)}
   <section class="card"><div class="row-h"><h2 style="font-size:17px">${t('water')}</h2><span class="muted num">${(day.eau*0.25).toLocaleString(LOC)} L / ${(P.profile.eauObj*0.25).toLocaleString(LOC)} L</span></div>
   <div class="water">${glasses}</div><p class="note" style="margin:8px 0 0">${t('waterNote')}</p></section>
   ${cur!==today()?`<button class="btn ghost" data-act="today">${t('backToday')}</button>`:''}`}
 
 async function statsHTML(){
-  const T=targets(),td=today(),pts=[];
-  for(let i=6;i>=0;i--){const d=addDays(td,-i),day=await getDay(d);pts.push({d,s:sum(day.entries),n:day.entries.length})}
-  const W=340,H=180,top=18,bot=24,max=Math.max(T.kcal*1.25,...pts.map(p=>p.s.kc)),y=v=>top+(H-top-bot)*(1-v/max),bw=30,gap=(W-7*bw)/8;
+  const T=dayTargets({}),td=today(),pts=[];
+  for(let i=6;i>=0;i--){const d=addDays(td,-i),day=await getDay(d);pts.push({d,s:sum(day.entries),n:day.entries.length,g:dayTargets(day).kcal})}
+  const W=340,H=180,top=18,bot=24,max=Math.max(T.kcal*1.25,...pts.map(p=>p.s.kc),...pts.map(p=>p.g*1.05)),y=v=>top+(H-top-bot)*(1-v/max),bw=30,gap=(W-7*bw)/8;
   const bars=pts.map((p,i)=>{const x=gap+i*(bw+gap),h=(H-bot)-y(p.s.kc),[yy,mm,dd]=p.d.split('-').map(Number),lab=new Date(yy,mm-1,dd).toLocaleDateString(LOC,{weekday:'short'}).replace('.','').slice(0,3);
-    return`<rect x="${x}" y="${y(p.s.kc)}" width="${bw}" height="${Math.max(0,h)}" rx="5" fill="${p.s.kc>T.kcal?'var(--over)':'var(--accent)'}" opacity="${p.d===td?1:.75}"/>
+    return`<rect x="${x}" y="${y(p.s.kc)}" width="${bw}" height="${Math.max(0,h)}" rx="5" fill="${p.s.kc>p.g?'var(--over)':'var(--accent)'}" opacity="${p.d===td?1:.75}"/>
     ${p.n?`<text x="${x+bw/2}" y="${y(p.s.kc)-4}" text-anchor="middle">${nf(p.s.kc)}</text>`:''}<text x="${x+bw/2}" y="${H-6}" text-anchor="middle">${lab}</text>`}).join('');
-  const filled=pts.filter(p=>p.n),avg=k=>filled.length?filled.reduce((a,p)=>a+p.s[k],0)/filled.length:0,inGoal=filled.filter(p=>Math.abs(p.s.kc-T.kcal)<=T.kcal*0.1).length;
+  const filled=pts.filter(p=>p.n),avg=k=>filled.length?filled.reduce((a,p)=>a+p.s[k],0)/filled.length:0,inGoal=filled.filter(p=>Math.abs(p.s.kc-p.g)<=p.g*0.1).length;
   const ws=[...P.weights].sort((a,b)=>a.d<b.d?-1:1).slice(-30);let wchart='';
   if(ws.length>=2){const mn=Math.min(...ws.map(w=>w.kg))-0.5,mx=Math.max(...ws.map(w=>w.kg))+0.5,X=i=>30+i*(W-44)/(ws.length-1),Y=v=>12+(140-24)*(1-(v-mn)/(mx-mn));
     wchart=`<svg class="chart" viewBox="0 0 ${W} 150" role="img" aria-label="${t('weightCurve')}">
@@ -611,24 +643,28 @@ function goalInfoHTML(p){const c=+p.cible;if(!(c>0)||!(p.poids>0)||!(p.taille>0)
   if(p.objectif==='perte'&&c>p.poids)out.push(`<p class="warn">${t('targetAbove')}</p>`);
   else if(p.objectif==='perte')out.push(`<p class="okline">${d<=0?t('reached'):t('remaining',{d:f1(d),c:f1(c)})}</p>`);
   out.push(`<p class="note" style="margin:0">${t('bmiNow',{i:f1(bi),j:f1(bj)})}</p>`);return`<div style="display:flex;flex-direction:column;gap:6px">${out.join('')}</div>`}
-function reperesHTML(p,dirty){const T=targets(p),E=energy(p);
+function reperesHTML(p,dirty){const sm=p.sportMode==='seances',T=targets(sm?{...p,activite:1.2}:p),E=energy(sm?{...p,activite:1.2}:p);
   return`<h2 style="font-size:17px">${t('benchmarks')}${dirty?` <span class="badge ia">${t('unsaved')}</span>`:''}</h2>
    <div class="stat3"><div><b>${nf(E.bmr)}</b><small>${t('bmr')}</small></div><div><b>${nf(E.tdee)}</b><small>${t('tdee')}</small></div><div><b style="color:var(--accent)">${nf(T.kcal)}</b><small>${t('goalKcal')}${+p.kcalPerso>0?t('setByYou'):''}</small></div></div>
    <div class="stat3"><div><b style="color:var(--prot)">${T.pr} g</b><small>${t('proteinL')}</small></div><div><b style="color:var(--gluc)">${T.gl} g</b><small>${t('carbsL')}</small></div><div><b style="color:var(--lip)">${T.li} g</b><small>${t('fatL')}</small></div></div>
    ${T.floored?`<p class="warn" style="margin-top:10px">${t('floorNote',{b:nf(E.bmr)})}</p>`:''}
    <p class="note" style="margin:12px 0 0">${t('calcNote')}</p>`}
-function formProfile(){const v=id=>$(id).value;return{...P.profile,rythme:v('#pRythme'),cible:+v('#pCible')>=30&&+v('#pCible')<=300?r1(+v('#pCible')):'',sexe:v('#pSexe'),age:+v('#pAge'),poids:+v('#pPoids'),taille:+v('#pTaille'),activite:+v('#pAct'),objectif:v('#pObj'),kcalPerso:+v('#pPerso')>0?Math.round(+v('#pPerso')):'',eauObj:Math.min(16,Math.max(1,Math.round(+v('#pEau')||8)))}}
-function profileUpd(){const p=formProfile();$('#paceRow').hidden=p.objectif!=='perte';if(!(p.age>=14&&p.poids>=30&&p.taille>=120))return;$('#goalInfo').innerHTML=goalInfoHTML(p);$('#rep').innerHTML=reperesHTML(p,true);$('#objHelp').textContent=objHelp(p.objectif);
+function formProfile(){const v=id=>$(id).value;return{...P.profile,sportMode:v('#pSport'),rythme:v('#pRythme'),cible:+v('#pCible')>=30&&+v('#pCible')<=300?r1(+v('#pCible')):'',sexe:v('#pSexe'),age:+v('#pAge'),poids:+v('#pPoids'),taille:+v('#pTaille'),activite:+v('#pAct'),objectif:v('#pObj'),kcalPerso:+v('#pPerso')>0?Math.round(+v('#pPerso')):'',eauObj:Math.min(16,Math.max(1,Math.round(+v('#pEau')||8)))}}
+function profileUpd(){const p=formProfile();$('#smHelp').textContent=p.sportMode==='seances'?t('smHelpSeances'):t('smHelpNiveau');$('#paceRow').hidden=p.objectif!=='perte';if(!(p.age>=14&&p.poids>=30&&p.taille>=120))return;$('#goalInfo').innerHTML=goalInfoHTML(p);$('#rep').innerHTML=reperesHTML(p,true);$('#objHelp').textContent=objHelp(p.objectif);
   $('#eauHelp').textContent=t('waterLitres',{l:(p.eauObj*0.25).toLocaleString(LOC)})}
 function profileHTML(){const p=P.profile;
   const opt=(v,l,cv)=>`<option value="${v}" ${String(cv)===String(v)?'selected':''}>${l}</option>`;
-  return`<div class="row-h"><h1 style="font-size:24px">${t('profileTitle')}</h1>${langSwitch()}</div>
+  const first=!p.saved;
+  return`${first?`<div class="topbar"><div class="brand">CalTrack</div>${langSwitch()}</div><section class="card" style="display:flex;gap:12px;align-items:center"><div style="width:84px;flex:none">${mascot(0.5,'great',{noAnim:true,label:t('mascotName')})}</div><div style="min-width:0"><h1 style="font-size:20px">${t('welcomeTitle')}</h1><p class="note" style="margin:6px 0 0">${t('welcomeText')}</p></div></section>`
+  :`<div class="row-h"><h1 style="font-size:24px">${t('profileTitle')}</h1>${langSwitch()}</div>`}
   <section class="card" style="display:flex;flex-direction:column;gap:12px">
    <div class="grid2"><label class="f">${t('sex')}<select id="pSexe">${opt('F',t('female'),p.sexe)}${opt('H',t('male'),p.sexe)}</select></label>
    <label class="f">${t('age')}<input id="pAge" type="number" inputmode="numeric" value="${p.age}"></label>
    <label class="f">${t('weightKg')}<input id="pPoids" type="number" inputmode="decimal" step="0.1" value="${p.poids}"></label>
    <label class="f">${t('height')}<input id="pTaille" type="number" inputmode="numeric" value="${p.taille}"></label></div>
    <label class="f">${t('activity')}<select id="pAct">${opt(1.2,t('act1'),p.activite)}${opt(1.375,t('act2'),p.activite)}${opt(1.55,t('act3'),p.activite)}${opt(1.725,t('act4'),p.activite)}</select></label>
+   <label class="f">${t('sportMode')}<select id="pSport">${opt('niveau',t('sm_niveau'),p.sportMode)}${opt('seances',t('sm_seances'),p.sportMode)}</select></label>
+   <p class="note" id="smHelp" style="margin:-6px 0 0">${p.sportMode==='seances'?t('smHelpSeances'):t('smHelpNiveau')}</p>
    <label class="f">${t('objective')}<select id="pObj">${opt('perte',t('lose'),p.objectif)}${opt('maintien',t('keep'),p.objectif)}${opt('prise',t('gain'),p.objectif)}</select></label>
    <p class="note" id="objHelp" style="margin:-6px 0 0">${objHelp(p.objectif)}</p>
    <div id="paceRow" ${p.objectif==='perte'?'':'hidden'}><label class="f">${t('pace')}<select id="pRythme">${opt('doux',t('paceDoux'),p.rythme)}${opt('modere',t('paceModere'),p.rythme)}${opt('soutenu',t('paceSoutenu'),p.rythme)}</select></label></div>
@@ -638,7 +674,7 @@ function profileHTML(){const p=P.profile;
    <p class="note" style="margin:-6px 0 0">${t('customNote')}</p>
    <label class="f">${t('waterGoal')}<input id="pEau" type="number" inputmode="numeric" min="1" max="16" value="${p.eauObj}"></label>
    <p class="note" id="eauHelp" style="margin:-6px 0 0">${t('waterLitres',{l:(p.eauObj*0.25).toLocaleString(LOC)})}</p>
-   <button class="btn" data-act="saveProfile">${t('save')}</button></section>
+   <button class="btn" data-act="saveProfile">${first?t('welcomeBtn'):t('save')}</button></section>
   <section class="card" id="rep">${reperesHTML(p,false)}</section>
   <section class="card" style="display:flex;flex-direction:column;gap:10px"><h2 style="font-size:17px">${t('yourData')}</h2>
    <p class="note" style="margin:0">${t('dataNote',{p:P.custom.length,r:P.recipes.length})}</p>
@@ -721,6 +757,7 @@ function recipeNote(f){return`<p class="note" style="margin:-6px 0 0">${t(f.noCo
   ${f.noCooked?`<p class="warn">${t('noCookedWarn')}</p>`:`<p class="okline">${t('recipeHow')}</p>`}`}
 
 function renderSheet(){stopCam();
+  if(A.sport)return sportSheet();
   if(A.rec)return renderRecipeSheet();
   if(A.editId){const e=days[cur].entries.find(x=>x.id===A.editId);if(!e){closeSheet();return}
     sheetShell(esc(ename(e)),`<p class="note" style="margin:0">${per100(e.b)}</p>
@@ -904,6 +941,10 @@ document.addEventListener('click',async e=>{
   const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act,d=b.dataset;
   if(a==='tab'){tab=d.v;await render();scrollTo(0,0)}
   else if(a==='lang')setLang(d.v);
+  else if(a==='sportAdd'){A={sport:true};openSheet()}
+  else if(a==='sportSave'){const kc=+$('#spKcal').value;if(!(kc>0&&kc<5000)){toast(t('tSportKcal'));return}const day=await getDay(cur);day.sport=day.sport||[];
+    day.sport.push({id:uid6(),type:$('#spType').value,min:+$('#spMin').value>0?Math.round(+$('#spMin').value):0,kc:Math.round(kc)});saveDay(cur);closeSheet();render();toast(t('tSportSaved'))}
+  else if(a==='sportDel'){const day=await getDay(cur);day.sport=(day.sport||[]).filter(x=>x.id!==d.id);saveDay(cur);render()}
   else if(a==='cvMode'){CV.mode=d.v;render()}
   else if(a==='cvPick'){CV.food=findFood(d.id);CV.q='';CV.ckFood=autoCooked(CV.food);CV.ckAuto=!!CV.ckFood;CV.q2=null;$('#cvFood').innerHTML=cvFoodHTML();$('#cvCk').innerHTML=cvCookedHTML();$('#cvOut').innerHTML=cvOutHTML()}
   else if(a==='cvPick2'){CV.ckFood=findFood(d.id);CV.ckAuto=false;$('#cvCk').innerHTML=cvCookedHTML();$('#cvOut').innerHTML=cvOutHTML()}
@@ -955,8 +996,8 @@ document.addEventListener('click',async e=>{
   else if(a==='saveProfile'){const p=P.profile,num=(id,mn,mx)=>{const v=+$(id).value;return v>=mn&&v<=mx?v:null};
     const age=num('#pAge',14,100),poids=num('#pPoids',30,300),taille=num('#pTaille',120,230);
     if(age===null||poids===null||taille===null){toast(t('tCheckProfile'));return}
-    Object.assign(p,formProfile(),{saved:true});
-    saveP();render();toast(t('tProfileSaved'))}
+    const wasFirst=!p.saved;Object.assign(p,formProfile(),{saved:true});
+    saveP();if(wasFirst){tab='journal';scrollTo(0,0)}render();toast(t('tProfileSaved'))}
   else if(a==='addW'){const kg=+$('#wkg').value;if(!(kg>=20&&kg<=300)){toast(t('tWeightBad'));return}
     const td=today();P.weights=P.weights.filter(w=>w.d!==td);P.weights.push({d:td,kg:r1(kg)});P.profile.poids=r1(kg);justWeighed=true;saveP();render();toast(t('tWeightSaved'))}
   else if(a==='delW'){P.weights=P.weights.filter(w=>w.d!==d.d);saveP();render()}
@@ -967,14 +1008,14 @@ document.addEventListener('input',e=>{const el=e.target;
   else if(['cvRaw','cvCooked','cvN','cvRawPer'].includes(el.id)){CV[{cvRaw:'raw',cvCooked:'cooked',cvN:'n',cvRawPer:'rawPer'}[el.id]]=el.value;if(el.id==='cvCooked'||el.id==='cvRaw')$('#cvCk').innerHTML=cvCookedHTML();$('#cvOut').innerHTML=cvOutHTML()}
   else if(el.id==='cvQ2'){CV.q2=el.value;const pos=el.selectionStart;$('#cvCk').innerHTML=cvCookedHTML();const q=$('#cvQ2');if(q){q.focus();try{q.setSelectionRange(pos,pos)}catch(_){}}}
   else if(el.id==='qty')liveUpd(A.editId?days[cur].entries.find(x=>x.id===A.editId).b:A.food);
-  else if(['pSexe','pAge','pPoids','pTaille','pAct','pObj','pPerso','pEau','pRythme','pCible'].includes(el.id))profileUpd();
+  else if(['pSexe','pAge','pPoids','pTaille','pAct','pObj','pPerso','pEau','pRythme','pCible','pSport'].includes(el.id))profileUpd();
   else if(['cK','cP','cG','cL'].includes(el.id))chkUpd();
   else if(['rParts','rCooked','rN'].includes(el.id)){readRecipeForm();$('#rTot').innerHTML=totHTML(A.rec)}
   else if(el.dataset.rig!==undefined){const x=A.rec.ings[+el.dataset.rig];x.g=+el.value||0;$(`[data-ik="${el.dataset.rig}"]`).textContent=nf(x.b.kc*x.g/100)+' kcal';$('#rTot').innerHTML=totHTML(A.rec)}});
 document.addEventListener('change',e=>{const el=e.target,f=el.files&&el.files[0];
   if((el.id==='scanCam'||el.id==='scanFile')&&f)scanFile(f);
   else if(el.id==='impFile'&&f)readImport(f);
-  else if(['pSexe','pAct','pObj','pRythme'].includes(el.id))profileUpd()});
+  else if(['pSexe','pAct','pObj','pRythme','pSport'].includes(el.id))profileUpd()});
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='q'&&A&&A.q.trim().length>1){e.preventDefault();runOffSearch()}if(e.key==='Enter'&&e.target.id==='codeIn'){e.preventDefault();lookupCode((e.target.value||'').replace(/\D/g,''))}if(e.key==='Escape'&&!$('#ov').hidden&&!(A&&A.rec))closeSheet()});
 
 /* ---------- Sauvegarde ---------- */
@@ -991,7 +1032,7 @@ async function doImport(){if(!impData)return;try{const keys=[];for(let i=0;i<loc
 
 /* ---------- Démarrage ---------- */
 applyStatic();
-(async()=>{await loadAll();render()})();
+(async()=>{await loadAll();if(!P.profile.saved)tab='profil';render()})();
 if('serviceWorker' in navigator&&location.protocol==='https:')window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 </script>
 </body>
