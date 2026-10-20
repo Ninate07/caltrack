@@ -192,6 +192,8 @@ body{margin:0;padding-top:env(safe-area-inset-top,0px)}
 .motd b{font-style:normal;color:var(--accent);font-weight:700}
 .scale summary{cursor:pointer;color:var(--accent);font-weight:700;font-size:14px;margin-top:10px}
 .wlist small{font-size:12px}
+.exbox{margin-top:12px;background:var(--accent-soft);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;font-size:14px}
+.exbox p{margin:0}
 </style>
 </head>
 <body>
@@ -219,6 +221,12 @@ function norm0(s){return String(s).toLowerCase().replace(/œ/g,'oe').replace(/æ
 
 /* ---------- Langue : français / anglais ---------- */
 const S={fr:{
+ toEat:'À manger aujourd\'hui',
+ exTitle:'Pourquoi tu peux manger plus aujourd\'hui',exBurn:'Ton corps dépense : {b} + {s} de sport = {t} kcal',exEat:'Tu peux manger : {b} + {s} de sport = {t} kcal',
+ exGapLose:'Écart : {g} kcal, le même qu\'un jour sans sport. C\'est cet écart qui te fait perdre du poids.',exGapKeep:'Tu manges autant que tu dépenses : ton poids reste stable.',exGapGain:'Tu manges {g} kcal de plus que tu ne dépenses, pour aider à prendre du muscle.',
+ exWhy:'Sans ces calories en plus, l\'écart grimperait à {g} kcal ce jour-là : un écart trop fort fatigue, donne faim et se tient mal sur la durée.',
+ exLevel:'Ton niveau d\'activité (Profil) inclut déjà ton sport habituel : ta dépense estimée de {t} kcal par jour en tient compte. Ces séances ne changent donc pas ce que tu peux manger.',
+ spPreview:'Avec cette séance, tu pourras manger autant de calories en plus aujourd\'hui, pour garder le même écart qu\'un jour sans sport.',
  gymBadge:'Gym Tracker',gymNote:"Séances lues dans ton appli Gym Tracker, avec ses estimations de calories (formules MET de l'ACSM). Ne les ajoute pas ici en plus, sinon elles compteraient deux fois.",
  gymImport:'Séances de Gym Tracker',gymOn:'Les importer automatiquement',gymOff:'Ne pas les importer',gymHelp:"CalTrack lit les séances et les courses que tu notes dans Gym Tracker, sur ce même téléphone et dans le même navigateur.",gymNone:"Aucune donnée Gym Tracker trouvée dans ce navigateur pour l'instant.",
  steps:'Pas',stepsPh:'Nombre de pas du jour',stepsNote:"Recopie le chiffre de ton application Santé. Ils n'entrent pas dans le calcul des calories, pour ne pas compter ton activité deux fois.",stepsSaved:'Pas enregistrés',
@@ -319,6 +327,12 @@ const S={fr:{
  tQty:'Indique une quantité',tAdded:'Ajouté au {meal}',tDeleted:'Supprimé',tCopied:'Repas de la veille repris',tNameKcal:"Le nom et l'énergie en kcal sont nécessaires",tProdSaved:'Produit enregistré',tRecipeName:'Donne un nom à la recette',tRecipeIng:'Ajoute au moins un ingrédient',tRecipeSaved:'Recette enregistrée',tRecipeDel:'Recette supprimée',tCheckProfile:'Vérifie âge, poids et taille',tProfileSaved:'Profil enregistré',tWeightBad:'Indique un poids valide',tWeightSaved:'Poids noté',
  tStorage:"Impossible d'enregistrer : la mémoire du navigateur est pleine ou bloquée",tReadFail:'Lecture des données impossible',tBackup:'Sauvegarde téléchargée',tNotBackup:"Ce fichier n'est pas une sauvegarde CalTrack",tRestoreFail:'Restauration impossible',tRestored:'Données restaurées',backupFile:'caltrack-sauvegarde'
 },en:{
+ toEat:'To eat today',
+ exTitle:'Why you can eat more today',exBurn:'Your body burns: {b} + {s} from exercise = {t} kcal',exEat:'You can eat: {b} + {s} from exercise = {t} kcal',
+ exGapLose:'Gap: {g} kcal, the same as a day without exercise. This gap is what makes you lose weight.',exGapKeep:'You eat as much as you burn: your weight stays stable.',exGapGain:'You eat {g} kcal more than you burn, to help build muscle.',
+ exWhy:'Without these extra calories, the gap would rise to {g} kcal that day: too big a gap is tiring, makes you hungry and is hard to sustain.',
+ exLevel:'Your activity level (Profile) already includes your usual exercise: your estimated expenditure of {t} kcal per day accounts for it. These sessions therefore do not change what you can eat.',
+ spPreview:'With this session, you will be able to eat that many extra calories today, to keep the same gap as a day without exercise.',
  gymBadge:'Gym Tracker',gymNote:'Sessions read from your Gym Tracker app, with its calorie estimates (ACSM MET formulas). Do not add them here as well, or they would count twice.',
  gymImport:'Gym Tracker sessions',gymOn:'Import them automatically',gymOff:'Do not import them',gymHelp:'CalTrack reads the workouts and runs you log in Gym Tracker, on this same phone and in the same browser.',gymNone:'No Gym Tracker data found in this browser yet.',
  steps:'Steps',stepsPh:"Today's step count",stepsNote:'Copy the number from your Health app. Steps are not added to your calorie goal, so your activity is not counted twice.',stepsSaved:'Steps saved',
@@ -564,6 +578,14 @@ const MOT={fr:{all:["Chaque repas noté, c'est une info de plus pour toi, pas un
 function motOfDay(d){const L=MOT[LANG]||MOT.fr,list=L.all.concat(L[P.profile.objectif]||[]);let h=0;for(const ch of d)h=(h*31+ch.charCodeAt(0))>>>0;return list[h%list.length]}
 
 const scaleTxt=w=>[w.fat?`${t('sFat').split(' (')[0]} ${f1(w.fat)} %`:'',w.mus?`${t('sMus').split(' (')[0]} ${f1(w.mus)} kg`:'',w.wat?`${t('sWat').split(' (')[0]} ${f1(w.wat)} %`:'',w.bmr?`${t('sBmr').split(' (')[0]} ${nf(w.bmr)} kcal`:''].filter(Boolean).join(' · ');
+function exExplainHTML(day,T){const p=P.profile,L=sportList(day,cur);if(!L.length||+p.kcalPerso>0)return'';
+  if(p.sportMode!=='seances')return`<p class="note" style="margin:12px 0 0">${t('exLevel',{t:nf(energy(p).tdee)})}</p>`;
+  const burnBase=energy({...p,activite:1.2}).tdee,ex=T.ex,burn=burnBase+ex,gap=burn-T.kcal;
+  const gl=p.objectif==='perte'?t('exGapLose',{g:nf(gap)}):p.objectif==='prise'?t('exGapGain',{g:nf(-gap)}):t('exGapKeep');
+  return`<div class="exbox"><p class="lbl" style="margin:0 0 6px">${t('exTitle')}</p>
+   <p class="num">${t('exBurn',{b:nf(burnBase),s:nf(ex),t:nf(burn)})}</p>
+   <p class="num">${t('exEat',{b:nf(T.base),s:nf(ex),t:nf(T.kcal)})}</p>
+   <p class="okline num">${gl}</p>${p.objectif==='perte'?`<p class="note num">${t('exWhy',{g:nf(burn-T.base)})}</p>`:''}</div>`}
 /* ---------- Sport ---------- */
 function sportCardHTML(day){const L=sportList(day,cur),tot=sportSum(day,cur),hasGym=L.some(x=>x.gym),mode=P.profile.sportMode==='seances';
   return`<section class="card meal"><div class="meal-h"><h2>${t('sport')}</h2><span class="kc">${L.length?nf(tot)+' kcal':''}</span>
@@ -574,7 +596,7 @@ function sportCardHTML(day){const L=sportList(day,cur),tot=sportSum(day,cur),has
 function sportSheet(){sheetShell(t('sportAdd'),`<label class="f">${t('sportType')}<select id="spType">${SPORTS.map(k=>`<option value="${k}">${t('sp_'+k)}</option>`).join('')}</select></label>
   <div class="grid2"><label class="f">${t('sportMin')}<input id="spMin" type="number" inputmode="numeric" min="0"></label><label class="f">${t('sportKcal')}<input id="spKcal" type="number" inputmode="numeric" min="0"></label></div>
   <p class="note" style="margin:0">${t('sportKcalHelp')}</p>
-  <p class="note" style="margin:0">${P.profile.sportMode==='seances'?t('smHelpSeances'):t('smHelpNiveau')}</p>
+  <p class="${P.profile.sportMode==='seances'?'okline':'note'}" style="margin:0">${P.profile.sportMode==='seances'?t('spPreview'):t('smHelpNiveau')}</p>
   <button class="btn" data-act="sportSave">${t('sportSave')}</button>`)}
 
 /* ---------- Analyse : valeurs des aliments notés comparées aux repères officiels ---------- */
@@ -620,10 +642,10 @@ async function journalHTML(){
   <div class="card"><div class="summary">${mascot(Sm.kc/T.kcal,md.k,{id:'belly',label:t('bellyLabel',{p:Math.round(Sm.kc/T.kcal*100)})})}<div class="sumstats">
     <p class="bubble">${md.t}</p>
     <div><div class="big-left" style="color:${left<0?'var(--over)':'var(--ink)'}">${nf(Math.abs(left))}</div><span class="muted" style="font-size:13px">${left<0?t('kcalOver'):t('kcalLeft')}</span></div>
-    <div class="kv"><span class="muted">${t('goal')}</span><b>${nf(T.kcal)} kcal</b></div>${T.ex?`<p class="note num" style="margin:0;text-align:right">${t('sportGoalLine',{b:nf(T.base),e:nf(T.ex),t:nf(T.kcal)})}</p>`:''}
+    <div class="kv"><span class="muted">${t('toEat')}</span><b>${nf(T.kcal)} kcal</b></div>
     <div class="kv"><span class="muted">${t('eaten')}</span><b>${nf(Sm.kc)} kcal</b></div>
   </div></div>
-    <div class="macros">${mac}</div></div>
+    <div class="macros">${mac}</div>${exExplainHTML(day,T)}</div>
   ${meals}
   ${sportCardHTML(day)}
   <section class="card"><div class="row-h"><h2 style="font-size:17px">${t('steps')}</h2>${day.steps?`<span class="muted num">${nf(day.steps)}</span>`:''}</div>
