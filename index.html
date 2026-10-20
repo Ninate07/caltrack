@@ -219,6 +219,8 @@ function norm0(s){return String(s).toLowerCase().replace(/œ/g,'oe').replace(/æ
 
 /* ---------- Langue : français / anglais ---------- */
 const S={fr:{
+ gymBadge:'Gym Tracker',gymNote:"Séances lues dans ton appli Gym Tracker, avec ses estimations de calories (formules MET de l'ACSM). Ne les ajoute pas ici en plus, sinon elles compteraient deux fois.",
+ gymImport:'Séances de Gym Tracker',gymOn:'Les importer automatiquement',gymOff:'Ne pas les importer',gymHelp:"CalTrack lit les séances et les courses que tu notes dans Gym Tracker, sur ce même téléphone et dans le même navigateur.",gymNone:"Aucune donnée Gym Tracker trouvée dans ce navigateur pour l'instant.",
  steps:'Pas',stepsPh:'Nombre de pas du jour',stepsNote:"Recopie le chiffre de ton application Santé. Ils n'entrent pas dans le calcul des calories, pour ne pas compter ton activité deux fois.",stepsSaved:'Pas enregistrés',
  steps7:'Pas, 7 derniers jours',stepsAvg:'{n} pas par jour en moyenne ({d} jour(s) notés)',stepsChart:'Pas des 7 derniers jours',stepsNone:'Note tes pas dans le Journal pour les voir ici.',
  scaleData:'Données de ta balance (facultatif)',sFat:'Masse grasse (%)',sMus:'Masse musculaire (kg)',sWat:'Eau (%)',sBmr:'Métabolisme de base (kcal)',
@@ -317,6 +319,8 @@ const S={fr:{
  tQty:'Indique une quantité',tAdded:'Ajouté au {meal}',tDeleted:'Supprimé',tCopied:'Repas de la veille repris',tNameKcal:"Le nom et l'énergie en kcal sont nécessaires",tProdSaved:'Produit enregistré',tRecipeName:'Donne un nom à la recette',tRecipeIng:'Ajoute au moins un ingrédient',tRecipeSaved:'Recette enregistrée',tRecipeDel:'Recette supprimée',tCheckProfile:'Vérifie âge, poids et taille',tProfileSaved:'Profil enregistré',tWeightBad:'Indique un poids valide',tWeightSaved:'Poids noté',
  tStorage:"Impossible d'enregistrer : la mémoire du navigateur est pleine ou bloquée",tReadFail:'Lecture des données impossible',tBackup:'Sauvegarde téléchargée',tNotBackup:"Ce fichier n'est pas une sauvegarde CalTrack",tRestoreFail:'Restauration impossible',tRestored:'Données restaurées',backupFile:'caltrack-sauvegarde'
 },en:{
+ gymBadge:'Gym Tracker',gymNote:'Sessions read from your Gym Tracker app, with its calorie estimates (ACSM MET formulas). Do not add them here as well, or they would count twice.',
+ gymImport:'Gym Tracker sessions',gymOn:'Import them automatically',gymOff:'Do not import them',gymHelp:'CalTrack reads the workouts and runs you log in Gym Tracker, on this same phone and in the same browser.',gymNone:'No Gym Tracker data found in this browser yet.',
  steps:'Steps',stepsPh:"Today's step count",stepsNote:'Copy the number from your Health app. Steps are not added to your calorie goal, so your activity is not counted twice.',stepsSaved:'Steps saved',
  steps7:'Steps, last 7 days',stepsAvg:'{n} steps per day on average ({d} day(s) logged)',stepsChart:'Steps over the last 7 days',stepsNone:'Log your steps in the Diary to see them here.',
  scaleData:'Smart scale data (optional)',sFat:'Body fat (%)',sMus:'Muscle mass (kg)',sWat:'Water (%)',sBmr:'Basal metabolic rate (kcal)',
@@ -458,7 +462,7 @@ function lget(k){try{const v=localStorage.getItem(LS+k);return v?JSON.parse(v):n
 function lset(k,v){try{localStorage.setItem(LS+k,JSON.stringify(v))}catch(e){toast(t('tStorage'))}}
 async function sget(k){return lget(k)}
 function sset(k,v){lset(k,v)}
-const DEF={sexe:'F',age:30,poids:65,taille:165,activite:1.375,objectif:'maintien',rythme:'modere',cible:'',sportMode:'niveau',bmrSrc:'formule',kcalPerso:'',eauObj:8,saved:false};
+const DEF={sexe:'F',age:30,poids:65,taille:165,activite:1.375,objectif:'maintien',rythme:'modere',cible:'',sportMode:'niveau',bmrSrc:'formule',gymImport:true,kcalPerso:'',eauObj:8,saved:false};
 const RYTHME={doux:0.10,modere:0.15,soutenu:0.20};
 let P={profile:{...DEF},custom:[],recents:[],favs:[],weights:[],recipes:[]};
 let days={},cur=today(),tab='journal';
@@ -478,9 +482,17 @@ function targets(p=P.profile){const{bmr,tdee}=energy(p);let floored=false,kcal;
   kcal=Math.round(kcal/10)*10;
   const pr=Math.round(Math.min(p.poids*1.8,kcal*0.3/4)),li=Math.round(kcal*0.3/9),gl=Math.max(0,Math.round((kcal-pr*4-li*9)/4));return{kcal,pr,gl,li,floored}}
 const SPORTS=['salle','course','velo','natation','marche','autre'];
-const sportSum=day=>((day&&day.sport)||[]).reduce((a,x)=>a+(+x.kc||0),0);
-function dayTargets(day){const p=P.profile;if(p.sportMode!=='seances')return{...targets(),ex:0,base:targets().kcal};
-  const b=targets({...p,activite:1.2}),ex=Math.round(sportSum(day));return{...b,kcal:b.kcal+ex,gl:b.gl+Math.round(ex/4),base:b.kcal,ex}}
+/* Gym Tracker est publié sur le même site (ninate07.github.io) : ses données sont lisibles ici (clés fitcoach_logs et fitcoach_runs) */
+function gymRaw(k){try{const v=JSON.parse(localStorage.getItem('fitcoach_'+k)||'[]');return Array.isArray(v)?v:[]}catch(e){return[]}}
+const gymAvailable=()=>gymRaw('logs').length>0||gymRaw('runs').length>0;
+function gymSessions(d){if(!d||P.profile.gymImport===false)return[];const L=[];
+  gymRaw('logs').filter(x=>x&&x.date===d&&+x.calories>0).forEach(x=>L.push({id:'g'+x.id,type:'salle',name:String(x.sessionName||''),min:+x.durationMin||0,kc:Math.round(+x.calories),gym:true}));
+  gymRaw('runs').filter(x=>x&&x.date===d&&+x.calories>0).forEach(x=>L.push({id:'g'+x.id,type:x.type==='marche'?'marche':'course',min:+x.durationMin||0,km:+x.distanceKm||0,kc:Math.round(+x.calories),gym:true}));
+  return L}
+const sportList=(day,d)=>((day&&day.sport)||[]).concat(gymSessions(d));
+const sportSum=(day,d)=>sportList(day,d).reduce((a,x)=>a+(+x.kc||0),0);
+function dayTargets(day,d){const p=P.profile;if(p.sportMode!=='seances')return{...targets(),ex:0,base:targets().kcal};
+  const b=targets({...p,activite:1.2}),ex=Math.round(sportSum(day,d));return{...b,kcal:b.kcal+ex,gl:b.gl+Math.round(ex/4),base:b.kcal,ex}}
 const tot=e=>({kc:e.b.kc*e.g/100,pr:e.b.pr*e.g/100,gl:e.b.gl*e.g/100,li:e.b.li*e.g/100});
 function sum(list){return list.reduce((a,e)=>{const x=tot(e);a.kc+=x.kc;a.pr+=x.pr;a.gl+=x.gl;a.li+=x.li;return a},{kc:0,pr:0,gl:0,li:0})}
 function recipeTotals(r){const x=r.ings.reduce((a,i)=>{a.kc+=i.b.kc*i.g/100;a.pr+=i.b.pr*i.g/100;a.gl+=i.b.gl*i.g/100;a.li+=i.b.li*i.g/100;a.raw+=+i.g||0;return a},{kc:0,pr:0,gl:0,li:0,raw:0});
@@ -553,12 +565,12 @@ function motOfDay(d){const L=MOT[LANG]||MOT.fr,list=L.all.concat(L[P.profile.obj
 
 const scaleTxt=w=>[w.fat?`${t('sFat').split(' (')[0]} ${f1(w.fat)} %`:'',w.mus?`${t('sMus').split(' (')[0]} ${f1(w.mus)} kg`:'',w.wat?`${t('sWat').split(' (')[0]} ${f1(w.wat)} %`:'',w.bmr?`${t('sBmr').split(' (')[0]} ${nf(w.bmr)} kcal`:''].filter(Boolean).join(' · ');
 /* ---------- Sport ---------- */
-function sportCardHTML(day){const L=day.sport||[],tot=sportSum(day),mode=P.profile.sportMode==='seances';
+function sportCardHTML(day){const L=sportList(day,cur),tot=sportSum(day,cur),hasGym=L.some(x=>x.gym),mode=P.profile.sportMode==='seances';
   return`<section class="card meal"><div class="meal-h"><h2>${t('sport')}</h2><span class="kc">${L.length?nf(tot)+' kcal':''}</span>
    <button class="plus" data-act="sportAdd" aria-label="${t('sportAdd')}">+</button></div>
-   ${L.length?L.map(x=>`<div class="entry"><span class="nm"><b>${t('sp_'+x.type)}</b><small>${x.min?nf(x.min)+' min · ':''}${nf(x.kc)} kcal</small></span><button class="x" data-act="sportDel" data-id="${x.id}" aria-label="${t('del')}">×</button></div>`).join('')
+   ${L.length?L.map(x=>`<div class="entry"><span class="nm"><b>${x.name?esc(x.name):t('sp_'+x.type)}${x.gym?`<span class="badge etiquette">${t('gymBadge')}</span>`:''}</b><small>${x.min?nf(x.min)+' min · ':''}${x.km?f1(x.km)+' km · ':''}${nf(x.kc)} kcal</small></span>${x.gym?'':`<button class="x" data-act="sportDel" data-id="${x.id}" aria-label="${t('del')}">×</button>`}</div>`).join('')
    :`<div class="empty"><span>${t('sportNone')}</span></div>`}
-   ${L.length?`<p class="note" style="margin:0;padding:8px 16px 12px">${mode?t('sportAdded',{k:nf(tot)}):t('sportInLevel')}</p>`:''}</section>`}
+   ${L.length?`<p class="note" style="margin:0;padding:8px 16px ${hasGym?4:12}px">${mode?t('sportAdded',{k:nf(tot)}):t('sportInLevel')}</p>`:''}${hasGym?`<p class="attrib" style="padding:0 16px 12px">${t('gymNote')}</p>`:''}</section>`}
 function sportSheet(){sheetShell(t('sportAdd'),`<label class="f">${t('sportType')}<select id="spType">${SPORTS.map(k=>`<option value="${k}">${t('sp_'+k)}</option>`).join('')}</select></label>
   <div class="grid2"><label class="f">${t('sportMin')}<input id="spMin" type="number" inputmode="numeric" min="0"></label><label class="f">${t('sportKcal')}<input id="spKcal" type="number" inputmode="numeric" min="0"></label></div>
   <p class="note" style="margin:0">${t('sportKcalHelp')}</p>
@@ -592,7 +604,7 @@ function analysisHTML(entries,T,nd,week){if(!entries.length)return'';const o=nut
    <p class="attrib" style="margin-top:8px">${t('anSources')}</p></section>`}
 
 async function journalHTML(){
-  const day=await getDay(cur),prev=await getDay(addDays(cur,-1)),T=dayTargets(day),Sm=sum(day.entries);
+  const day=await getDay(cur),prev=await getDay(addDays(cur,-1)),T=dayTargets(day,cur),Sm=sum(day.entries);
   const mac=[['protein','pr','--prot'],['carbs','gl','--gluc'],['fat','li','--lip']].map(([n,k,c])=>`<div class="macro"><span>${t(n)}</span>
     <div class="bar"><i style="width:${Math.min(100,Sm[k]/T[k]*100||0)}%;background:var(${c})"></i></div><small>${nf(Sm[k])} / ${nf(T[k])} g</small></div>`).join('');
   const meals=MEALS.map(m=>{const es=day.entries.filter(e=>e.meal===m),ms=sum(es),pe=prev.entries.filter(e=>e.meal===m);
@@ -624,7 +636,7 @@ async function journalHTML(){
 
 async function statsHTML(){
   const T=dayTargets({}),td=today(),pts=[];
-  for(let i=6;i>=0;i--){const d=addDays(td,-i),day=await getDay(d);pts.push({d,s:sum(day.entries),n:day.entries.length,g:dayTargets(day).kcal})}
+  for(let i=6;i>=0;i--){const d=addDays(td,-i),day=await getDay(d);pts.push({d,s:sum(day.entries),n:day.entries.length,g:dayTargets(day,d).kcal})}
   const W=340,H=180,top=18,bot=24,max=Math.max(T.kcal*1.25,...pts.map(p=>p.s.kc),...pts.map(p=>p.g*1.05)),y=v=>top+(H-top-bot)*(1-v/max),bw=30,gap=(W-7*bw)/8;
   const bars=pts.map((p,i)=>{const x=gap+i*(bw+gap),h=(H-bot)-y(p.s.kc),[yy,mm,dd]=p.d.split('-').map(Number),lab=new Date(yy,mm-1,dd).toLocaleDateString(LOC,{weekday:'short'}).replace('.','').slice(0,3);
     return`<rect x="${x}" y="${y(p.s.kc)}" width="${bw}" height="${Math.max(0,h)}" rx="5" fill="${p.s.kc>p.g?'var(--over)':'var(--accent)'}" opacity="${p.d===td?1:.75}"/>
@@ -678,7 +690,7 @@ function reperesHTML(p,dirty){const sm=p.sportMode==='seances',T=targets(sm?{...
    <div class="stat3"><div><b style="color:var(--prot)">${T.pr} g</b><small>${t('proteinL')}</small></div><div><b style="color:var(--gluc)">${T.gl} g</b><small>${t('carbsL')}</small></div><div><b style="color:var(--lip)">${T.li} g</b><small>${t('fatL')}</small></div></div>
    ${T.floored?`<p class="warn" style="margin-top:10px">${t('floorNote',{b:nf(E.bmr)})}</p>`:''}
    <p class="note" style="margin:12px 0 0">${p.bmrSrc==='balance'&&lastScale('bmr')?t('calcNoteScale'):t('calcNote')}</p>`}
-function formProfile(){const v=id=>$(id).value;return{...P.profile,bmrSrc:v('#pBmrSrc'),sportMode:v('#pSport'),rythme:v('#pRythme'),cible:+v('#pCible')>=30&&+v('#pCible')<=300?r1(+v('#pCible')):'',sexe:v('#pSexe'),age:+v('#pAge'),poids:+v('#pPoids'),taille:+v('#pTaille'),activite:+v('#pAct'),objectif:v('#pObj'),kcalPerso:+v('#pPerso')>0?Math.round(+v('#pPerso')):'',eauObj:Math.min(16,Math.max(1,Math.round(+v('#pEau')||8)))}}
+function formProfile(){const v=id=>$(id).value;return{...P.profile,gymImport:v('#pGym')!=='0',bmrSrc:v('#pBmrSrc'),sportMode:v('#pSport'),rythme:v('#pRythme'),cible:+v('#pCible')>=30&&+v('#pCible')<=300?r1(+v('#pCible')):'',sexe:v('#pSexe'),age:+v('#pAge'),poids:+v('#pPoids'),taille:+v('#pTaille'),activite:+v('#pAct'),objectif:v('#pObj'),kcalPerso:+v('#pPerso')>0?Math.round(+v('#pPerso')):'',eauObj:Math.min(16,Math.max(1,Math.round(+v('#pEau')||8)))}}
 function profileUpd(){const p=formProfile();$('#smHelp').textContent=p.sportMode==='seances'?t('smHelpSeances'):t('smHelpNiveau');$('#paceRow').hidden=p.objectif!=='perte';if(!(p.age>=14&&p.poids>=30&&p.taille>=120))return;$('#goalInfo').innerHTML=goalInfoHTML(p);$('#rep').innerHTML=reperesHTML(p,true);$('#objHelp').textContent=objHelp(p.objectif);
   $('#eauHelp').textContent=t('waterLitres',{l:(p.eauObj*0.25).toLocaleString(LOC)})}
 function profileHTML(){const p=P.profile;
@@ -696,6 +708,8 @@ function profileHTML(){const p=P.profile;
    <p class="note" style="margin:-6px 0 0">${lastScale('bmr')?t('bmrScaleNote'):t('bmrNoScale')}</p>
    <label class="f">${t('sportMode')}<select id="pSport">${opt('niveau',t('sm_niveau'),p.sportMode)}${opt('seances',t('sm_seances'),p.sportMode)}</select></label>
    <p class="note" id="smHelp" style="margin:-6px 0 0">${p.sportMode==='seances'?t('smHelpSeances'):t('smHelpNiveau')}</p>
+   <label class="f">${t('gymImport')}<select id="pGym">${opt('1',t('gymOn'),p.gymImport===false?'0':'1')}${opt('0',t('gymOff'),p.gymImport===false?'0':'1')}</select></label>
+   <p class="note" style="margin:-6px 0 0">${t('gymHelp')}${gymAvailable()?'':' '+t('gymNone')}</p>
    <label class="f">${t('objective')}<select id="pObj">${opt('perte',t('lose'),p.objectif)}${opt('maintien',t('keep'),p.objectif)}${opt('prise',t('gain'),p.objectif)}</select></label>
    <p class="note" id="objHelp" style="margin:-6px 0 0">${objHelp(p.objectif)}</p>
    <div id="paceRow" ${p.objectif==='perte'?'':'hidden'}><label class="f">${t('pace')}<select id="pRythme">${opt('doux',t('paceDoux'),p.rythme)}${opt('modere',t('paceModere'),p.rythme)}${opt('soutenu',t('paceSoutenu'),p.rythme)}</select></label></div>
@@ -1065,6 +1079,7 @@ async function doImport(){if(!impData)return;try{const keys=[];for(let i=0;i<loc
 /* ---------- Démarrage ---------- */
 applyStatic();
 (async()=>{await loadAll();if(!P.profile.saved)tab='profil';render()})();
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&$('#ov').hidden)render()});
 if('serviceWorker' in navigator&&location.protocol==='https:')window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 </script>
 </body>

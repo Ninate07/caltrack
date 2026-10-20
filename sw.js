@@ -1,5 +1,5 @@
 /* CalTrack : fonctionne hors connexion. Changez le numéro de version à chaque mise à jour des fichiers. */
-const CACHE = 'caltrack-v8';
+const CACHE = 'caltrack-v9';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png', './ciqual-2025.js',
   'https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js'];
 
