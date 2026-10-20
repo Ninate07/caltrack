@@ -221,6 +221,8 @@ function norm0(s){return String(s).toLowerCase().replace(/œ/g,'oe').replace(/æ
 
 /* ---------- Langue : français / anglais ---------- */
 const S={fr:{
+ wkTitle:'Moyenne par semaine',wkThis:'Semaine du {d} : {v} kg en moyenne ({n} pesée(s))',wkDiff:'{s} kg par rapport à la semaine du {d} ({v} kg)',wkSame:'Stable par rapport à la semaine du {d} ({v} kg)',
+ wkNote:"Le poids varie facilement d'un jour à l'autre (eau, repas, cycle) : la moyenne de la semaine est plus fiable qu'une pesée isolée.",wkChart:'Moyennes de poids par semaine',wkNeed:'Pèse-toi sur au moins deux semaines différentes pour comparer les moyennes.',
  toEat:'À manger aujourd\'hui',
  exTitle:'Pourquoi tu peux manger plus aujourd\'hui',exBurn:'Ton corps dépense : {b} + {s} de sport = {t} kcal',exEat:'Tu peux manger : {b} + {s} de sport = {t} kcal',
  exGapLose:'Écart : {g} kcal, le même qu\'un jour sans sport. C\'est cet écart qui te fait perdre du poids.',exGapKeep:'Tu manges autant que tu dépenses : ton poids reste stable.',exGapGain:'Tu manges {g} kcal de plus que tu ne dépenses, pour aider à prendre du muscle.',
@@ -327,6 +329,8 @@ const S={fr:{
  tQty:'Indique une quantité',tAdded:'Ajouté au {meal}',tDeleted:'Supprimé',tCopied:'Repas de la veille repris',tNameKcal:"Le nom et l'énergie en kcal sont nécessaires",tProdSaved:'Produit enregistré',tRecipeName:'Donne un nom à la recette',tRecipeIng:'Ajoute au moins un ingrédient',tRecipeSaved:'Recette enregistrée',tRecipeDel:'Recette supprimée',tCheckProfile:'Vérifie âge, poids et taille',tProfileSaved:'Profil enregistré',tWeightBad:'Indique un poids valide',tWeightSaved:'Poids noté',
  tStorage:"Impossible d'enregistrer : la mémoire du navigateur est pleine ou bloquée",tReadFail:'Lecture des données impossible',tBackup:'Sauvegarde téléchargée',tNotBackup:"Ce fichier n'est pas une sauvegarde CalTrack",tRestoreFail:'Restauration impossible',tRestored:'Données restaurées',backupFile:'caltrack-sauvegarde'
 },en:{
+ wkTitle:'Weekly average',wkThis:'Week of {d}: {v} kg on average ({n} weigh-in(s))',wkDiff:'{s} kg compared with the week of {d} ({v} kg)',wkSame:'Stable compared with the week of {d} ({v} kg)',
+ wkNote:'Weight easily varies from day to day (water, meals, cycle): the weekly average is more reliable than a single weigh-in.',wkChart:'Weekly weight averages',wkNeed:'Weigh yourself in at least two different weeks to compare averages.',
  toEat:'To eat today',
  exTitle:'Why you can eat more today',exBurn:'Your body burns: {b} + {s} from exercise = {t} kcal',exEat:'You can eat: {b} + {s} from exercise = {t} kcal',
  exGapLose:'Gap: {g} kcal, the same as a day without exercise. This gap is what makes you lose weight.',exGapKeep:'You eat as much as you burn: your weight stays stable.',exGapGain:'You eat {g} kcal more than you burn, to help build muscle.',
@@ -697,8 +701,21 @@ async function statsHTML(){
     ${+P.profile.cible>0&&last?`<p class="okline num" style="margin:8px 0 0">${t('goalLine',{c:f1(P.profile.cible),d:f1(Math.max(0,last.kg-P.profile.cible))})}</p>`:''}
     ${wm}
     ${wchart||`<p class="note">${t('weightNeed2')}</p>`}
+    ${weeklyHTML()}
     ${ws.length?`<div class="wlist">${ws.slice().reverse().slice(0,8).map(w=>`<div><span>${dateLabel(w.d)}${scaleTxt(w)?`<br><small class="muted">${scaleTxt(w)}</small>`:''}</span><span class="num">${f1(w.kg)} kg <button class="x" data-act="delW" data-d="${w.d}" aria-label="${t('del')}">×</button></span></div>`).join('')}</div>`:''}</section>`}
 
+/* Moyennes hebdomadaires (semaine du lundi au dimanche) */
+function weekStart(d){const[y,m,dd]=d.split('-').map(Number),x=new Date(y,m-1,dd),wd=(x.getDay()+6)%7;x.setDate(x.getDate()-wd);return ymd(x)}
+function weeklyWeights(){const g={};(P.weights||[]).forEach(w=>{const k=weekStart(w.d);(g[k]=g[k]||[]).push(w.kg)});return Object.keys(g).sort().map(k=>({k,avg:g[k].reduce((a,b)=>a+b,0)/g[k].length,n:g[k].length}))}
+const shortDate=d=>{const[y,m,dd]=d.split('-').map(Number);return new Date(y,m-1,dd).toLocaleDateString(LOC,{day:'numeric',month:'short'}).replace('.','')};
+function weeklyHTML(){const W=weeklyWeights();if(!W.length)return'';const cur=W[W.length-1],prev=W[W.length-2];
+  let out=`<p class="lbl grp" style="margin-top:14px">${t('wkTitle')}</p><p class="num" style="margin:4px 0 0">${t('wkThis',{d:shortDate(cur.k),v:f1(cur.avg),n:cur.n})}</p>`;
+  if(prev){const d=r1(r1(cur.avg)-r1(prev.avg));out+=`<p class="${d<0?'okline':'note'} num" style="margin:2px 0 0">${d===0?t('wkSame',{d:shortDate(prev.k),v:f1(prev.avg)}):t('wkDiff',{s:(d>0?'+':'')+f1(d),d:shortDate(prev.k),v:f1(prev.avg)})}</p>`}
+  else out+=`<p class="note" style="margin:2px 0 0">${t('wkNeed')}</p>`;
+  const L=W.slice(-8);if(L.length>=2){const Wd=340,H=130,mn=Math.min(...L.map(x=>x.avg))-0.3,mx=Math.max(...L.map(x=>x.avg))+0.3,X=i=>36+i*(Wd-56)/(L.length-1),Y=v=>12+(H-40)*(1-(v-mn)/(mx-mn));
+    out+=`<svg class="chart" viewBox="0 0 ${Wd} ${H}" role="img" aria-label="${t('wkChart')}"><polyline fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round" points="${L.map((x,i)=>X(i)+','+Y(x.avg)).join(' ')}"/>
+     ${L.map((x,i)=>`<circle cx="${X(i)}" cy="${Y(x.avg)}" r="${i===L.length-1?5:3.5}" fill="var(--accent)"/><text x="${X(i)}" y="${Y(x.avg)-8}" text-anchor="middle">${f1(x.avg)}</text><text x="${X(i)}" y="${H-6}" text-anchor="middle">${shortDate(x.k)}</text>`).join('')}</svg>`}
+  return out+`<p class="note" style="margin:6px 0 0">${t('wkNote')}</p>`}
 const objHelp=o=>({perte:t('objLose'),maintien:t('objKeep'),prise:t('objGain')}[o]||'');
 const bmi=(kg,cm)=>kg/((cm/100)**2);
 function goalInfoHTML(p){const c=+p.cible;if(!(c>0)||!(p.poids>0)||!(p.taille>0))return'';const d=r1(p.poids-c),bi=bmi(p.poids,p.taille),bj=bmi(c,p.taille),out=[];
